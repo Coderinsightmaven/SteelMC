@@ -34,6 +34,7 @@ pub struct GrowingPlantHeadBlock {
     can_grow_into: fn(BlockStateId) -> bool,
 }
 const AGE: &IntProperty = &BlockStateProperties::AGE_25;
+const MAX_AGE: u8 = 25;
 
 impl GrowingPlantHeadBlock {
     /// Creates a new growing plant head behavior.
@@ -108,6 +109,18 @@ impl GrowingPlantHeadBlock {
         block
             .default_state()
             .set_value(AGE, rng.random_range(0..25))
+    }
+
+    /// Vanilla `GrowingPlantHeadBlock.isMaxAge`.
+    #[must_use]
+    pub fn is_max_age(state: BlockStateId) -> bool {
+        state.get_value(AGE) == MAX_AGE
+    }
+
+    /// Vanilla `GrowingPlantHeadBlock.getMaxAgeState`.
+    #[must_use]
+    pub fn get_max_age_state(state: BlockStateId) -> BlockStateId {
+        state.set_value(AGE, MAX_AGE)
     }
 
     fn state_for_placement(
@@ -196,6 +209,9 @@ impl BlockBehavior for GrowingPlantHeadBlock {
     }
     fn as_bonemealable(&self) -> Option<&dyn Bonemealable> {
         Some(self)
+    }
+    fn is_growing_plant_head(&self) -> bool {
+        true
     }
 }
 impl Bonemealable for GrowingPlantHeadBlock {
@@ -286,5 +302,17 @@ mod tests {
         let state = behavior.state_for_placement(&level, BlockPos::ZERO, &mut rng);
 
         assert_eq!(state, vanilla_blocks::CAVE_VINES_PLANT.default_state());
+    }
+
+    #[test]
+    fn max_age_state_is_age_25() {
+        init_vanilla_registry();
+
+        let young = vanilla_blocks::KELP.default_state().set_value(AGE, 7);
+        let cropped = GrowingPlantHeadBlock::get_max_age_state(young);
+
+        assert!(!GrowingPlantHeadBlock::is_max_age(young));
+        assert!(GrowingPlantHeadBlock::is_max_age(cropped));
+        assert_eq!(cropped.get_value(AGE), MAX_AGE);
     }
 }

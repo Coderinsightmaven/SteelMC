@@ -610,6 +610,11 @@ pub trait BlockBehavior: Send + Sync {
         false
     }
 
+    /// Returns whether this behavior implements vanilla `GrowingPlantHeadBlock`.
+    fn is_growing_plant_head(&self) -> bool {
+        false
+    }
+
     /// Mirrors vanilla `DoorBlock.isWoodenDoor`.
     ///
     /// Despite the vanilla name, this returns true for any door block type that

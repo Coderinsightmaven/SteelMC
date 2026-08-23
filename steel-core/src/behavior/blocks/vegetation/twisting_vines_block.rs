@@ -75,6 +75,10 @@ impl BlockBehavior for TwistingVinesBlock {
     fn as_bonemealable(&self) -> Option<&dyn Bonemealable> {
         Some(self)
     }
+
+    fn is_growing_plant_head(&self) -> bool {
+        true
+    }
 }
 impl Bonemealable for TwistingVinesBlock {
     fn is_valid_bonemeal_target(
