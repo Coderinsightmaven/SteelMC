@@ -29,6 +29,7 @@ use steel_utils::value_providers::IntProvider;
 use steel_utils::{BlockLocalAabb, BlockPos, BlockStateId, Identifier, WorldAabb, axis::Axis};
 
 use crate::behavior::BLOCK_BEHAVIORS;
+use crate::behavior::blocks::vegetation::GrowingPlantHeadBehavior;
 use crate::behavior::blocks::vegetation::bonemealable::Bonemealable;
 use crate::behavior::context::{BlockHitResult, BlockPlaceContext, InteractionResult};
 use crate::behavior::{InventoryAccess, PlacementSource};
@@ -607,11 +608,6 @@ pub trait BlockBehavior: Send + Sync {
 
     /// Returns whether this behavior implements `BedBlock`
     fn is_bed(&self) -> bool {
-        false
-    }
-
-    /// Returns whether this behavior implements vanilla `GrowingPlantHeadBlock`.
-    fn is_growing_plant_head(&self) -> bool {
         false
     }
 
@@ -1208,6 +1204,11 @@ pub trait BlockBehavior: Send + Sync {
 
     /// Returns the trait object for Blocks that have the Bonemealable trait implemented.
     fn as_bonemealable(&self) -> Option<&dyn Bonemealable> {
+        None
+    }
+
+    /// Returns the shared vanilla `GrowingPlantHeadBlock` capability.
+    fn as_growing_plant_head(&self) -> Option<&dyn GrowingPlantHeadBehavior> {
         None
     }
 

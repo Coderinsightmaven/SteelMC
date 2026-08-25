@@ -3,7 +3,9 @@ use std::sync::Arc;
 use crate::behavior::block::BlockBehavior;
 use crate::behavior::blocks::vegetation::bonemealable::{BonemealAction, Bonemealable};
 use crate::behavior::blocks::vegetation::growing_plant_block;
-use crate::behavior::blocks::vegetation::growing_plant_head_block::GrowingPlantHeadBlock;
+use crate::behavior::blocks::vegetation::growing_plant_head_block::{
+    GrowingPlantHeadBehavior, GrowingPlantHeadBlock,
+};
 use crate::behavior::context::BlockPlaceContext;
 use crate::world::{LevelReader, ScheduledTickAccess, World};
 
@@ -128,8 +130,8 @@ impl BlockBehavior for KelpBlock {
         Some(self)
     }
 
-    fn is_growing_plant_head(&self) -> bool {
-        true
+    fn as_growing_plant_head(&self) -> Option<&dyn GrowingPlantHeadBehavior> {
+        Some(&self.base)
     }
 }
 
