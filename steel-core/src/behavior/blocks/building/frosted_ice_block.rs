@@ -7,7 +7,6 @@ use steel_registry::blocks::BlockRef;
 use steel_registry::blocks::block_state_ext::BlockStateExt;
 use steel_registry::blocks::properties::{BlockStateProperties, IntProperty};
 use steel_registry::item_stack::ItemStack;
-use steel_registry::vanilla_dimension_types;
 use steel_utils::types::UpdateFlags;
 use steel_utils::{BlockPos, BlockStateId, Direction};
 
@@ -16,7 +15,7 @@ use crate::behavior::{BlockBehavior, BlockPlaceContext};
 use crate::block_entity::SharedBlockEntity;
 use crate::chunk::light::LightLayer;
 use crate::player::Player;
-use crate::world::{LevelReader, World};
+use crate::world::{self, LevelReader, World};
 
 const AGE: &IntProperty = &BlockStateProperties::AGE_3;
 const MAX_AGE: u8 = 3;
@@ -77,7 +76,7 @@ impl FrostedIceBlock {
     }
 
     fn melt_brightness(world: &Arc<World>, pos: BlockPos, state: BlockStateId) -> bool {
-        let brightness = if world.dimension_type == &vanilla_dimension_types::THE_END {
+        let brightness = if world.key == world::END {
             world.light_value_at(LightLayer::Block, pos)
         } else {
             world.max_local_raw_brightness(pos, 0)
@@ -99,9 +98,15 @@ impl BlockBehavior for FrostedIceBlock {
         _state: BlockStateId,
         world: &Arc<World>,
         pos: BlockPos,
-        _old_state: BlockStateId,
+        old_state: BlockStateId,
         _moved_by_piston: bool,
     ) {
+        // Steel calls on_place for same-block property updates. Age increments
+        // must not schedule the 60-120 placement delay, or duplicate suppression
+        // would discard the 20-40 delay from `tick`.
+        if old_state.get_block() == self.block {
+            return;
+        }
         world.schedule_block_tick_default(
             pos,
             self.block,
@@ -304,6 +309,29 @@ mod tests {
             false,
         );
         assert!(world.has_scheduled_block_tick(pos, &vanilla_blocks::FROSTED_ICE));
+    }
+
+    #[test]
+    fn on_place_does_not_schedule_for_age_updates() {
+        init_vanilla_registry();
+        init_behaviors();
+        let pos = BlockPos::new(8, 64, 8);
+        let world = fresh_test_world("frosted_ice_age_place");
+        insert_ready_full_chunk(&world, ChunkPos::from_block_pos(pos));
+        assert!(world.set_block(
+            pos,
+            aged(0),
+            UpdateFlags::UPDATE_NONE | UpdateFlags::UPDATE_SKIP_ON_PLACE,
+        ));
+        assert!(!world.has_scheduled_block_tick(pos, &vanilla_blocks::FROSTED_ICE));
+
+        assert!(!FrostedIceBlock::slightly_melt(
+            world.get_block_state(pos),
+            &world,
+            pos
+        ));
+        assert_eq!(world.get_block_state(pos).get_value(AGE), 1);
+        assert!(!world.has_scheduled_block_tick(pos, &vanilla_blocks::FROSTED_ICE));
     }
 
     #[test]
