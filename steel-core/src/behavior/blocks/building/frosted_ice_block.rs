@@ -40,7 +40,7 @@ impl FrostedIceBlock {
         Self { block }
     }
 
-    /// Vanilla `FrostedIceBlock.fewerNeigboursThan`.
+    /// Vanilla `FrostedIceBlock` neighbor-count check.
     fn fewer_neighbors_than(&self, world: &dyn LevelReader, pos: BlockPos, limit: u8) -> bool {
         let mut count = 0;
         for direction in Direction::ALL {
