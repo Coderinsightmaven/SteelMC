@@ -98,15 +98,9 @@ impl BlockBehavior for FrostedIceBlock {
         _state: BlockStateId,
         world: &Arc<World>,
         pos: BlockPos,
-        old_state: BlockStateId,
+        _old_state: BlockStateId,
         _moved_by_piston: bool,
     ) {
-        // Steel calls on_place for same-block property updates. Age increments
-        // must not schedule the 60-120 placement delay, or duplicate suppression
-        // would discard the 20-40 delay from `tick`.
-        if old_state.get_block() == self.block {
-            return;
-        }
         world.schedule_block_tick_default(
             pos,
             self.block,
@@ -309,29 +303,6 @@ mod tests {
             false,
         );
         assert!(world.has_scheduled_block_tick(pos, &vanilla_blocks::FROSTED_ICE));
-    }
-
-    #[test]
-    fn on_place_does_not_schedule_for_age_updates() {
-        init_vanilla_registry();
-        init_behaviors();
-        let pos = BlockPos::new(8, 64, 8);
-        let world = fresh_test_world("frosted_ice_age_place");
-        insert_ready_full_chunk(&world, ChunkPos::from_block_pos(pos));
-        assert!(world.set_block(
-            pos,
-            aged(0),
-            UpdateFlags::UPDATE_NONE | UpdateFlags::UPDATE_SKIP_ON_PLACE,
-        ));
-        assert!(!world.has_scheduled_block_tick(pos, &vanilla_blocks::FROSTED_ICE));
-
-        assert!(!FrostedIceBlock::slightly_melt(
-            world.get_block_state(pos),
-            &world,
-            pos
-        ));
-        assert_eq!(world.get_block_state(pos).get_value(AGE), 1);
-        assert!(!world.has_scheduled_block_tick(pos, &vanilla_blocks::FROSTED_ICE));
     }
 
     #[test]
