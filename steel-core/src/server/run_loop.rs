@@ -543,7 +543,7 @@ impl Server {
     ) -> Result<(), WorldTickWorkerError> {
         let all_timings = workers.tick_all(tick_count, runs_normally).await?;
         for (i, timings) in all_timings.iter().enumerate() {
-            if timings.elapsed.as_millis() < 50 {
+            if timings.elapsed < SLOW_CHUNK_TICK_THRESHOLD {
                 continue;
             }
             let cm = &timings.chunk_map;

@@ -164,10 +164,10 @@ pub(super) fn validate(config: &ServerConfig) -> Result<(), &'static str> {
         return Err("Simulation distance must be less than or equal to view distance");
     }
     if let Some(compression) = config.compression {
-        if compression.threshold.get() < 256 {
+        if compression.threshold.get() < CompressionInfo::DEFAULT_THRESHOLD {
             return Err("Compression threshold must be greater than or equal to 256");
         }
-        if !(1..=9).contains(&compression.level) {
+        if !(CompressionInfo::MIN_LEVEL..=CompressionInfo::MAX_LEVEL).contains(&compression.level) {
             return Err("Compression level must be between 1 and 9");
         }
     }

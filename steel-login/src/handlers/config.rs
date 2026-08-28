@@ -31,22 +31,7 @@ impl JavaTcpClient {
     pub async fn handle_client_information(&self, packet: SClientInformation) {
         log::debug!("Client information packet: {packet:?}");
 
-        // Convert packet to our ClientInformation struct and store it
-        let info = ClientInformation {
-            language: packet.language,
-            view_distance: packet
-                .view_distance
-                .max(2)
-                .cast_unsigned()
-                .min(self.server.config.view_distance.max(2)),
-            chat_visibility: packet.chat_visibility,
-            chat_colors: packet.chat_colors,
-            model_customization: packet.model_customization,
-            main_hand: packet.main_hand,
-            text_filtering_enabled: packet.text_filtering_enabled,
-            allows_listing: packet.allows_listing,
-            particle_status: packet.particle_status,
-        };
+        let info = ClientInformation::from_packet(packet, self.server.config.view_distance);
 
         *self.client_information.lock().await = info;
     }

@@ -1,3 +1,8 @@
+/// Vanilla sleep-counter cap and "slept long enough" threshold.
+pub(super) const SLEEP_DURATION_TICKS: i32 = 100;
+/// Vanilla sleep-counter value at which the wake animation finishes.
+pub(super) const SLEEP_WAKE_RESET_TICKS: i32 = 110;
+
 #[derive(Debug, Clone, Copy)]
 pub(super) struct PlayerSleepState {
     sleep_counter: i32,
@@ -21,12 +26,12 @@ impl PlayerSleepState {
     pub(super) const fn tick_sleep_counter(&mut self, is_sleeping: bool) {
         if is_sleeping {
             self.sleep_counter += 1;
-            if self.sleep_counter > 100 {
-                self.sleep_counter = 100;
+            if self.sleep_counter > SLEEP_DURATION_TICKS {
+                self.sleep_counter = SLEEP_DURATION_TICKS;
             }
         } else if self.sleep_counter > 0 {
             self.sleep_counter += 1;
-            if self.sleep_counter >= 110 {
+            if self.sleep_counter >= SLEEP_WAKE_RESET_TICKS {
                 self.sleep_counter = 0;
             }
         }

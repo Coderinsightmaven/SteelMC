@@ -32,6 +32,9 @@ use message_chain::SignedMessageChain;
 use profile_key::RemoteChatSession;
 use spam_throttler::TickThrottler;
 
+/// Vanilla `PlayerChatMessage.MESSAGE_EXPIRES_AFTER_SERVER`.
+const MESSAGE_EXPIRES_AFTER: Duration = Duration::from_mins(5);
+
 /// All chat-related state for a player.
 ///
 /// Stored behind a single `SyncMutex` on `Player`. The fields were previously
@@ -163,8 +166,6 @@ impl Player {
         &self,
         packet: &SChat,
     ) -> Result<(message_chain::SignedMessageLink, LastSeen), String> {
-        const MESSAGE_EXPIRES_AFTER: Duration = Duration::from_mins(5);
-
         let mut chat = self.chat.lock();
         let session = chat.chat_session.clone().ok_or("No chat session")?;
         let signature = packet.signature.as_ref().ok_or("No signature present")?;
@@ -193,8 +194,9 @@ impl Player {
 
         if message_age > MESSAGE_EXPIRES_AFTER {
             return Err(format!(
-                "Message expired (age: {}s, max: 300s)",
-                message_age.as_secs()
+                "Message expired (age: {}s, max: {}s)",
+                message_age.as_secs(),
+                MESSAGE_EXPIRES_AFTER.as_secs()
             ));
         }
 

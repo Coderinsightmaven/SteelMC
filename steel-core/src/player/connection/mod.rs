@@ -43,6 +43,31 @@ pub struct ClientInformation {
     pub particle_status: ParticleStatus,
 }
 
+impl ClientInformation {
+    /// Vanilla `ChunkMap.MIN_VIEW_DISTANCE`.
+    pub const MIN_VIEW_DISTANCE: u8 = 2;
+
+    /// Builds client information from a configuration or play-phase packet.
+    #[must_use]
+    pub fn from_packet(packet: SClientInformation, server_view_distance: u8) -> Self {
+        Self {
+            language: packet.language,
+            view_distance: packet
+                .view_distance
+                .max(Self::MIN_VIEW_DISTANCE.cast_signed())
+                .cast_unsigned()
+                .min(server_view_distance.max(Self::MIN_VIEW_DISTANCE)),
+            chat_visibility: packet.chat_visibility,
+            chat_colors: packet.chat_colors,
+            model_customization: packet.model_customization,
+            main_hand: packet.main_hand,
+            text_filtering_enabled: packet.text_filtering_enabled,
+            allows_listing: packet.allows_listing,
+            particle_status: packet.particle_status,
+        }
+    }
+}
+
 impl Default for ClientInformation {
     fn default() -> Self {
         Self {
@@ -208,21 +233,7 @@ impl Player {
         let old_view_distance = self.view_distance();
         let was_hat_shown = self.shows_hat();
 
-        let info = ClientInformation {
-            language: packet.language,
-            view_distance: packet
-                .view_distance
-                .max(2)
-                .cast_unsigned()
-                .min(self.config.view_distance.max(2)),
-            chat_visibility: packet.chat_visibility,
-            chat_colors: packet.chat_colors,
-            model_customization: packet.model_customization,
-            main_hand: packet.main_hand,
-            text_filtering_enabled: packet.text_filtering_enabled,
-            allows_listing: packet.allows_listing,
-            particle_status: packet.particle_status,
-        };
+        let info = ClientInformation::from_packet(packet, self.config.view_distance);
         self.set_client_information(info);
 
         let show_hat = self.shows_hat();
