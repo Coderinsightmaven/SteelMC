@@ -5,8 +5,9 @@
 
 use steel_macros::item_behavior;
 use steel_registry::{blocks::block_state_ext::BlockStateExt, sound_events, vanilla_game_events};
-use steel_utils::types::UpdateFlags;
+use steel_utils::{BlockPos, BlockStateId, types::UpdateFlags};
 
+use crate::behavior::blocks::vegetation::GrowingPlantHeadBehavior;
 use crate::behavior::{BLOCK_BEHAVIORS, InteractionResult, ItemBehavior, UseOnContext};
 use crate::entity::Entity;
 use crate::world::game_event::GameEventContext;
@@ -14,6 +15,26 @@ use crate::world::game_event::GameEventContext;
 /// Behavior for shears.
 #[item_behavior]
 pub struct ShearsItem;
+
+impl ShearsItem {
+    /// Crops a growing plant head to max age so `random_tick` no longer extends it.
+    fn block_age(
+        context: &UseOnContext<'_>,
+        plant: &dyn GrowingPlantHeadBehavior,
+        pos: BlockPos,
+        state: BlockStateId,
+    ) {
+        let new_state = plant.get_max_age_state(state);
+        context
+            .world
+            .set_block(pos, new_state, UpdateFlags::UPDATE_ALL);
+        context.world.game_event(
+            &vanilla_game_events::BLOCK_CHANGE,
+            pos,
+            &GameEventContext::new(Some(context.player), Some(new_state)),
+        );
+    }
+}
 
 impl ItemBehavior for ShearsItem {
     fn use_on(&self, context: &mut UseOnContext) -> InteractionResult {
@@ -35,15 +56,7 @@ impl ItemBehavior for ShearsItem {
             1.0,
             Some(context.player.id()),
         );
-        let new_state = plant.get_max_age_state(state);
-        context
-            .world
-            .set_block(pos, new_state, UpdateFlags::UPDATE_ALL);
-        context.world.game_event(
-            &vanilla_game_events::BLOCK_CHANGE,
-            pos,
-            &GameEventContext::new(Some(context.player), Some(new_state)),
-        );
+        Self::block_age(context, plant, pos, state);
 
         let has_infinite_materials = context.player.has_infinite_materials();
         context
