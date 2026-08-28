@@ -64,14 +64,10 @@ pub struct CompressionInfo {
 }
 
 impl CompressionInfo {
-    /// Vanilla default compression threshold in bytes, also Steel's configured minimum.
+    /// Vanilla default compression threshold in bytes.
     pub const DEFAULT_THRESHOLD: u32 = 256;
-    /// Default zlib compression level.
+    /// Vanilla default zlib compression level.
     pub const DEFAULT_LEVEL: i32 = 4;
-    /// Minimum zlib compression level.
-    pub const MIN_LEVEL: i32 = 1;
-    /// Maximum zlib compression level.
-    pub const MAX_LEVEL: i32 = 9;
 }
 
 impl Default for CompressionInfo {
