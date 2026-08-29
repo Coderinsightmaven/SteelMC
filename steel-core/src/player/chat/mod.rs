@@ -33,7 +33,7 @@ use profile_key::RemoteChatSession;
 use spam_throttler::TickThrottler;
 
 /// Vanilla `PlayerChatMessage.MESSAGE_EXPIRES_AFTER_SERVER`.
-const MESSAGE_EXPIRES_AFTER: Duration = Duration::from_mins(5);
+const MESSAGE_EXPIRES_AFTER_SERVER: Duration = Duration::from_mins(5);
 
 /// All chat-related state for a player.
 ///
@@ -192,11 +192,11 @@ impl Player {
             .duration_since(timestamp)
             .unwrap_or(Duration::from_secs(0));
 
-        if message_age > MESSAGE_EXPIRES_AFTER {
+        if message_age > MESSAGE_EXPIRES_AFTER_SERVER {
             return Err(format!(
                 "Message expired (age: {}s, max: {}s)",
                 message_age.as_secs(),
-                MESSAGE_EXPIRES_AFTER.as_secs()
+                MESSAGE_EXPIRES_AFTER_SERVER.as_secs()
             ));
         }
 

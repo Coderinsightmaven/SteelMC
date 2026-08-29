@@ -100,7 +100,7 @@ use steel_utils::{
     BlockPos, ChunkPos, Identifier,
     locks::{AsyncMutex, SyncMutex, SyncRwLock},
     text::DisplayResolutor,
-    threading::{DEBUG_STACK_SIZE, available_worker_threads, worker_threads_for_available},
+    threading::{DEBUG_STACK_SIZE, available_worker_threads},
     translations,
 };
 use text_components::{Modifier, TextComponent, format::Color};
@@ -166,10 +166,6 @@ fn configured_chunk_generation_threads(configured_threads: Option<usize>) -> Opt
 
 fn configured_chunk_encoding_threads(configured_threads: Option<usize>) -> Option<usize> {
     cap_positive_thread_count(configured_threads, available_worker_threads())
-}
-
-fn configured_packet_workers(configured_workers: Option<usize>) -> usize {
-    worker_threads_for_available(configured_workers, available_worker_threads())
 }
 
 fn cap_positive_thread_count(

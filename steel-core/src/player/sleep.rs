@@ -8,7 +8,7 @@ use steel_registry::{
 use steel_utils::{BlockPos, Direction};
 use text_components::{TextComponent, translation::TranslatedMessage};
 
-use super::sleep_state::SLEEP_DURATION_TICKS;
+use super::sleep_state::SLEEP_DURATION;
 use super::{Player, PlayerRespawnConfig};
 use crate::{
     entity::{Entity, LivingEntity as _},
@@ -123,11 +123,7 @@ impl Player {
         if update_level_list {
             self.get_world().update_sleeping_player_list();
         }
-        self.set_sleep_counter(if forceful_wakeup {
-            0
-        } else {
-            SLEEP_DURATION_TICKS
-        });
+        self.set_sleep_counter(if forceful_wakeup { 0 } else { SLEEP_DURATION });
         let (yaw, pitch) = self.rotation();
         if let Err(error) = self.teleport(self.position(), yaw, pitch) {
             log::warn!(
@@ -249,7 +245,7 @@ impl Player {
     /// Returns whether this player has slept long enough for vanilla night skip.
     #[must_use]
     pub fn is_sleeping_long_enough(&self) -> bool {
-        self.is_sleeping() && self.sleep_counter() >= SLEEP_DURATION_TICKS
+        self.is_sleeping() && self.sleep_counter() >= SLEEP_DURATION
     }
 
     fn set_sleep_counter(&self, sleep_counter: i32) {

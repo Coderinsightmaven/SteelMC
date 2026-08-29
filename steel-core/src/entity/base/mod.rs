@@ -42,7 +42,7 @@ use crate::physics::EntityPhysicsState;
 use crate::portal::{PortalKind, PortalProcessResult, PortalProcessor};
 use crate::world::World;
 
-const BOARDING_COOLDOWN_TICKS: i32 = 60;
+const BOARDING_COOLDOWN: i32 = 60;
 const PISTON_MOVEMENT_LIMIT: f64 = 0.51;
 const PISTON_ZERO_MOVEMENT_EPSILON: f64 = 1.0e-7;
 const PISTON_APPLIED_MOVEMENT_EPSILON: f64 = 1.0e-5;
@@ -1035,7 +1035,7 @@ impl EntityBase {
 
         if let Some(vehicle) = vehicle {
             vehicle.base().remove_passenger_id(self.id);
-            self.set_boarding_cooldown(BOARDING_COOLDOWN_TICKS);
+            self.set_boarding_cooldown(BOARDING_COOLDOWN);
         }
     }
 
@@ -1049,9 +1049,7 @@ impl EntityBase {
 
         for passenger in passengers {
             if passenger.base().clear_vehicle_if(self.id) {
-                passenger
-                    .base()
-                    .set_boarding_cooldown(BOARDING_COOLDOWN_TICKS);
+                passenger.base().set_boarding_cooldown(BOARDING_COOLDOWN);
             }
         }
     }

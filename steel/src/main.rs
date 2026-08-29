@@ -163,8 +163,14 @@ fn steel_main() {
         }
     };
 
-    let main_worker_threads = configured_worker_threads(steel_config.server.threads.main_runtime);
-    let chunk_worker_threads = configured_worker_threads(steel_config.server.threads.chunk_runtime);
+    let main_worker_threads = worker_threads_for_available(
+        steel_config.server.threads.main_runtime,
+        available_worker_threads(),
+    );
+    let chunk_worker_threads = worker_threads_for_available(
+        steel_config.server.threads.chunk_runtime,
+        available_worker_threads(),
+    );
 
     let chunk_runtime = Arc::new(
         Builder::new_multi_thread()
@@ -186,10 +192,6 @@ fn steel_main() {
 
     drop(main_runtime);
     drop(chunk_runtime);
-}
-
-fn configured_worker_threads(configured_threads: Option<usize>) -> usize {
-    worker_threads_for_available(configured_threads, available_worker_threads())
 }
 
 async fn main_async(chunk_runtime: Arc<Runtime>, steel_config: config::SteelConfig) {
