@@ -59,7 +59,7 @@ use super::known_players::{
 use super::player_admission::{PendingPlayerJoin, PlayerAdmissionState};
 use super::{
     AsyncMutex, CancellationToken, ChunkSender, CommandRegistry, CommandRequest,
-    CommandRequestQueue, DomainCommandStorage, DomainPlayerData, DomainPlayerState,
+    CommandRequestQueue, DomainCommandStorage, DomainMapData, DomainPlayerData, DomainPlayerState,
     DomainScoreboards, EnderPearlRestoreJob, FxHashMap, KeyStore, KnownPlayerCacheState,
     KnownPlayers, Notify, PacketProcessor, PersistentEnderPearl, PersistentEntity,
     PersistentPlayerData, PersistentRootVehicle, PlayerDataStorage, PlayerDisconnectQueue,
@@ -209,6 +209,9 @@ async fn test_server_with_worlds(
     let command_storage = DomainCommandStorage::load(&worlds)
         .await
         .map_err(|error| format!("test command storage should load: {error}"))?;
+    let map_data = DomainMapData::load_and_bind(domains, &worlds)
+        .await
+        .map_err(|error| format!("test map data should load: {error}"))?;
     let player_data_storage = PlayerDataStorage::new(
         storage_root.to_owned(),
         StorageSelection::default_player_file(),
@@ -241,6 +244,7 @@ async fn test_server_with_worlds(
         tick_rate_manager: SyncRwLock::new(TickRateManager::new()),
         scoreboards,
         command_storage,
+        map_data,
         command_dispatcher: SyncRwLock::new(registered_commands.dispatcher),
         command_permission_keys,
         command_requests: CommandRequestQueue::new(),

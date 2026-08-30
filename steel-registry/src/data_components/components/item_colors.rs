@@ -112,7 +112,7 @@ impl HashComponent for MapItemColor {
 }
 
 /// Numeric identifier for a map saved-data entry.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MapId {
     id: i32,
 }

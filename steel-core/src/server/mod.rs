@@ -66,6 +66,7 @@ use crate::server::packet_processor::PacketProcessor;
 use crate::server::registry_cache::RegistryCache;
 use crate::server::service_keys::ServiceKeyStore;
 use crate::server::worlds::WorldMap;
+use crate::world::map_data::DomainMapData;
 use crate::world::player_spawn_finder::{PlayerSpawnSearch, PlayerSpawnSearchPoll};
 use crate::world::{PlayerMap, World, WorldConfig};
 use crate::worldgen::WorldGeneratorRegistry;
@@ -428,6 +429,8 @@ pub struct Server {
     pub scoreboards: DomainScoreboards,
     /// Command NBT storage isolated by Steel domain.
     pub(crate) command_storage: DomainCommandStorage,
+    /// Persistent filled-map data isolated by Steel domain.
+    map_data: DomainMapData,
     /// Saves and dispatches commands to appropriate handlers.
     command_dispatcher: SyncRwLock<CommandDispatcher>,
     /// Steel-owned permission keys exposed for command autocomplete.
@@ -709,6 +712,10 @@ impl Server {
             worlds.insert(world_entry.key.clone(), world);
         }
 
+        let map_data = DomainMapData::load_and_bind(&resolved_worlds.domains, &worlds)
+            .await
+            .map_err(|error| format!("failed to load map data: {error}"))?;
+
         let scoreboards = DomainScoreboards::load(&worlds)
             .await
             .map_err(|error| format!("failed to load domain scoreboards: {error}"))?;
@@ -742,6 +749,7 @@ impl Server {
             player_idle_timeout: AtomicI32::new(0),
             scoreboards,
             command_storage,
+            map_data,
             command_dispatcher: SyncRwLock::new(registered_commands.dispatcher),
             command_permission_keys,
             command_requests: CommandRequestQueue::new(),
@@ -778,6 +786,11 @@ impl Server {
     /// Saves all dirty domain command storage through domain default worlds.
     pub async fn save_command_storage(&self) -> io::Result<usize> {
         self.command_storage.save(&self.worlds).await
+    }
+
+    /// Saves all dirty domain filled-map data.
+    pub async fn save_map_data(&self) -> io::Result<usize> {
+        self.map_data.save_all().await
     }
 
     /// Saves all command-owned persistent data while allowing each data set to fail independently.

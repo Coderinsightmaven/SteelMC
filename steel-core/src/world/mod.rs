@@ -4,7 +4,7 @@ use std::{
     io, mem,
     path::Path,
     sync::{
-        Arc, LazyLock, Weak,
+        Arc, LazyLock, OnceLock, Weak,
         atomic::{AtomicBool, Ordering},
     },
     time::Duration,
@@ -116,6 +116,7 @@ mod events;
 pub mod game_event;
 mod level_effects;
 mod level_reader;
+pub mod map_data;
 mod player_index;
 pub(crate) mod player_spawn_finder;
 mod portals;
@@ -247,6 +248,8 @@ pub struct World {
     pub level_data: SyncRwLock<LevelDataManager>,
     /// Per-world saved data storage.
     pub(crate) saved_data: SavedDataManager,
+    /// Domain-scoped filled-map data, bound when this world joins a server.
+    map_data: OnceLock<Arc<map_data::MapDataStore>>,
     /// Runtime world border state.
     world_border: SyncMutex<WorldBorder>,
     /// Vanilla sleeping player counts for night-skip checks.
@@ -415,6 +418,7 @@ impl World {
                 dimension_type,
                 level_data: SyncRwLock::new(level_data),
                 saved_data,
+                map_data: OnceLock::new(),
                 world_border: SyncMutex::new(world_border),
                 sleep_status: SyncMutex::new(sleep_status::SleepStatus::default()),
                 view_distance,
@@ -477,6 +481,21 @@ impl World {
     #[must_use]
     pub fn domain(&self) -> &str {
         self.key.namespace.as_ref()
+    }
+
+    /// Binds this world to the map store owned by its domain.
+    pub(crate) fn bind_map_data(&self, map_data: Arc<map_data::MapDataStore>) -> io::Result<()> {
+        self.map_data.set(map_data).map_err(|_| {
+            io::Error::new(
+                io::ErrorKind::AlreadyExists,
+                format!("map data is already bound for world {}", self.key),
+            )
+        })
+    }
+
+    /// Returns the map store shared by this world's domain.
+    pub fn map_data(&self) -> Option<Arc<map_data::MapDataStore>> {
+        self.map_data.get().map(Arc::clone)
     }
 
     /// Game tick: weather, time, chunk game tick (broadcasts + random/scheduled ticks),

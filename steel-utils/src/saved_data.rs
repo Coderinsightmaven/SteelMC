@@ -27,6 +27,9 @@ pub mod names {
     pub const SCOREBOARD: SavedDataName = SavedDataName::trusted("scoreboard");
     /// Domain command storage, persisted through the domain default world.
     pub const COMMAND_STORAGE: SavedDataName = SavedDataName::trusted("command_storage");
+    /// Domain-scoped map index and filled-map saved data.
+    pub const MAP_DATA: WincodeSavedDataName =
+        WincodeSavedDataName::trusted("map_data", *b"STMP", 1);
 }
 
 /// Name of a per-world saved data entry.

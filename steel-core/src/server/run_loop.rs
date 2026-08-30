@@ -233,6 +233,10 @@ impl Server {
             Ok(saved) => tracing::debug!(saved, "Domain command-storage autosave completed"),
             Err(error) => tracing::error!(%error, "Domain command-storage autosave failed"),
         }
+        match self.save_map_data().await {
+            Ok(saved) => tracing::debug!(saved, "Domain map-data autosave completed"),
+            Err(error) => tracing::error!(%error, "Domain map-data autosave failed"),
+        }
     }
 
     fn tick_command_data_autosave(
