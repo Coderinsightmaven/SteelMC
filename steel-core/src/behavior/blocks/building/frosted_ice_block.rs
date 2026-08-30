@@ -15,7 +15,7 @@ use crate::behavior::{BlockBehavior, BlockPlaceContext};
 use crate::block_entity::SharedBlockEntity;
 use crate::chunk::light::LightLayer;
 use crate::player::Player;
-use crate::world::{self, LevelReader, World};
+use crate::world::{LevelReader, World};
 
 const AGE: &IntProperty = &BlockStateProperties::AGE_3;
 const MAX_AGE: u8 = 3;
@@ -76,7 +76,7 @@ impl FrostedIceBlock {
     }
 
     fn melt_brightness(world: &Arc<World>, pos: BlockPos, state: BlockStateId) -> bool {
-        let brightness = if world.key == world::END {
+        let brightness = if world.is_end_dimension_type() {
             world.light_value_at(LightLayer::Block, pos)
         } else {
             world.max_local_raw_brightness(pos, 0)
@@ -182,12 +182,14 @@ impl BlockBehavior for FrostedIceBlock {
 mod tests {
     use steel_registry::blocks::block_state_ext::BlockStateExt;
     use steel_registry::blocks::properties::BlockStateProperties;
-    use steel_registry::{init_vanilla_registry, vanilla_blocks};
-    use steel_utils::{BlockPos, ChunkPos, Direction, types::UpdateFlags};
+    use steel_registry::{init_vanilla_registry, vanilla_blocks, vanilla_dimension_types};
+    use steel_utils::{BlockPos, ChunkPos, Direction, Identifier, types::UpdateFlags};
 
     use super::*;
     use crate::behavior::init_behaviors;
-    use crate::test_support::{TestLevel, fresh_test_world, insert_ready_full_chunk};
+    use crate::test_support::{
+        TestLevel, fresh_test_world, fresh_test_world_with_dimension_type, insert_ready_full_chunk,
+    };
 
     fn behavior() -> FrostedIceBlock {
         FrostedIceBlock::new(&vanilla_blocks::FROSTED_ICE)
@@ -217,6 +219,18 @@ mod tests {
                 .get_clone_item_stack(&vanilla_blocks::FROSTED_ICE, state, false)
                 .is_none()
         );
+    }
+
+    #[test]
+    fn custom_world_key_retains_end_dimension_semantics() {
+        let world = fresh_test_world_with_dimension_type(
+            "other",
+            "the_end",
+            &vanilla_dimension_types::THE_END,
+        );
+
+        assert_ne!(world.key, Identifier::vanilla_static("the_end"));
+        assert!(world.is_end_dimension_type());
     }
 
     #[test]

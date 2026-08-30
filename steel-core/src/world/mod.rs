@@ -227,9 +227,6 @@ pub struct WorldConfig {
     pub difficulty: Difficulty,
 }
 
-/// Vanilla `Level.END` world key (`minecraft:the_end`).
-pub const END: Identifier = Identifier::vanilla_static("the_end");
-
 /// A struct that represents a world.
 pub struct World {
     /// The chunk map of the world.
