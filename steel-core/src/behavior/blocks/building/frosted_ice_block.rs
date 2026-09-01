@@ -79,7 +79,7 @@ impl FrostedIceBlock {
         let brightness = if world.is_end_dimension_type() {
             world.light_value_at(LightLayer::Block, pos)
         } else {
-            world.max_local_raw_brightness(pos, 0)
+            world.max_local_raw_brightness(pos, world.sky_darkening())
         };
         i32::from(brightness)
             > i32::from(BASE_MELT_LIGHT_LEVEL)
