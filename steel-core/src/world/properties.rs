@@ -11,7 +11,7 @@ impl World {
     pub const MAX_ENTITY_SPAWN_Y: i32 = 20_000_000;
     /// Vanilla `Level.MIN_ENTITY_SPAWN_Y`.
     pub const MIN_ENTITY_SPAWN_Y: i32 = -20_000_000;
-  
+
     /// Returns whether this world uses the vanilla End dimension type.
     ///
     /// Steel world keys are domain-scoped, so End gameplay semantics cannot rely on the
